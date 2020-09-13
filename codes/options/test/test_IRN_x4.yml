@@ -30,8 +30,8 @@ datasets:
   test_5:
     name: val_DIV2K
     mode: LQGT
-    dataroot_GT: ~ # path to test HR images
-    dataroot_LQ: ~ # path to test reference LR images, not necessary, if not provided, LR images will be generated in dataloader
+    dataroot_GT: /home/dzhang4/DIV2K/DIV2K_valid_HR # path to test HR images
+    dataroot_LQ: /home/dzhang4/DIV2K/DIV2K_valid_LR_mild # path to test reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
 
 #### network

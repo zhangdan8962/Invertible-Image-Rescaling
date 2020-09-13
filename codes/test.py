@@ -57,12 +57,13 @@ for test_loader in test_loaders:
         img_path = data['GT_path'][0]
         img_name = osp.splitext(osp.basename(img_path))[0]
 
-        model.test()
+        #model.test()
+        model.upscale(data['LQ'],4)
         visuals = model.get_current_visuals()
 
         sr_img = util.tensor2img(visuals['SR'])  # uint8
         srgt_img = util.tensor2img(visuals['GT'])  # uint8
-        lr_img = util.tensor2img(visuals['LR'])  # uint8
+        #lr_img = util.tensor2img(visuals['LR'])  # uint8
         lrgt_img = util.tensor2img(visuals['LR_ref'])  # uint8
 
         # save images
@@ -83,7 +84,7 @@ for test_loader in test_loaders:
             save_img_path = osp.join(dataset_dir, img_name + suffix + '_LR.png')
         else:
             save_img_path = osp.join(dataset_dir, img_name + '_LR.png')
-        util.save_img(lr_img, save_img_path)
+        #util.save_img(lr_img, save_img_path)
 
         if suffix:
             save_img_path = osp.join(dataset_dir, img_name + suffix + '_LR_ref.png')
@@ -97,7 +98,7 @@ for test_loader in test_loaders:
         gt_img = gt_img / 255.
         sr_img = sr_img / 255.
 
-        lr_img = lr_img / 255.
+        #lr_img = lr_img / 255.
         lrgt_img = lrgt_img / 255.
 
         crop_border = opt['crop_border'] if opt['crop_border'] else opt['scale']
@@ -114,10 +115,10 @@ for test_loader in test_loaders:
         test_results['ssim'].append(ssim)
 
         # PSNR and SSIM for LR
-        psnr_lr = util.calculate_psnr(lr_img * 255, lrgt_img * 255)
-        ssim_lr = util.calculate_ssim(lr_img * 255, lrgt_img * 255)
-        test_results['psnr_lr'].append(psnr_lr)
-        test_results['ssim_lr'].append(ssim_lr)
+        #psnr_lr = util.calculate_psnr(lr_img * 255, lrgt_img * 255)
+        #ssim_lr = util.calculate_ssim(lr_img * 255, lrgt_img * 255)
+        #test_results['psnr_lr'].append(psnr_lr)
+        #test_results['ssim_lr'].append(ssim_lr)
 
         if gt_img.shape[2] == 3:  # RGB image
             sr_img_y = bgr2ycbcr(sr_img, only_y=True)
@@ -132,6 +133,7 @@ for test_loader in test_loaders:
             ssim_y = util.calculate_ssim(cropped_sr_img_y * 255, cropped_gt_img_y * 255)
             test_results['psnr_y'].append(psnr_y)
             test_results['ssim_y'].append(ssim_y)
+            '''
 
             lr_img_y = bgr2ycbcr(lr_img, only_y=True)
             lrgt_img_y = bgr2ycbcr(lrgt_img, only_y=True)
@@ -139,29 +141,43 @@ for test_loader in test_loaders:
             ssim_y_lr = util.calculate_ssim(lr_img_y * 255, lrgt_img_y * 255)
             test_results['psnr_y_lr'].append(psnr_y_lr)
             test_results['ssim_y_lr'].append(ssim_y_lr)
-
+            
             logger.info(
                     '{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}; PSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}. LR PSNR: {:.6f} dB; SSIM: {:.6f}; PSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}.'.
                 format(img_name, psnr, ssim, psnr_y, ssim_y, psnr_lr, ssim_lr, psnr_y_lr, ssim_y_lr))
+            '''
+            logger.info(
+                    '{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}; PSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}.'.
+                format(img_name, psnr, ssim, psnr_y, ssim_y))
+
         else:
-            logger.info('{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}. LR PSNR: {:.6f} dB; SSIM: {:.6f}.'.format(img_name, psnr, ssim, psnr_lr, ssim_lr))
+            #logger.info('{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}. LR PSNR: {:.6f} dB; SSIM: {:.6f}.'.format(img_name, psnr, ssim, psnr_lr, ssim_lr))
+            logger.info('{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}.'.format(img_name, psnr, ssim))
 
     # Average PSNR/SSIM results
     ave_psnr = sum(test_results['psnr']) / len(test_results['psnr'])
     ave_ssim = sum(test_results['ssim']) / len(test_results['ssim'])
 
-    ave_psnr_lr = sum(test_results['psnr_lr']) / len(test_results['psnr_lr'])
-    ave_ssim_lr = sum(test_results['ssim_lr']) / len(test_results['ssim_lr'])
+    #ave_psnr_lr = sum(test_results['psnr_lr']) / len(test_results['psnr_lr'])
+    #ave_ssim_lr = sum(test_results['ssim_lr']) / len(test_results['ssim_lr'])
+
+    #logger.info(
+    #        '----Average PSNR/SSIM results for {}----\n\tpsnr: {:.6f} db; ssim: {:.6f}. LR psnr: {:.6f} db; ssim: {:.6f}.\n'.format(
+    #        test_set_name, ave_psnr, ave_ssim, ave_psnr_lr, ave_ssim_lr))
 
     logger.info(
-            '----Average PSNR/SSIM results for {}----\n\tpsnr: {:.6f} db; ssim: {:.6f}. LR psnr: {:.6f} db; ssim: {:.6f}.\n'.format(
-            test_set_name, ave_psnr, ave_ssim, ave_psnr_lr, ave_ssim_lr))
+            '----Average PSNR/SSIM results for {}----\n\tpsnr: {:.6f} db; ssim: {:.6f}. \n'.format(
+            test_set_name, ave_psnr, ave_ssim))
+
     if test_results['psnr_y'] and test_results['ssim_y']:
         ave_psnr_y = sum(test_results['psnr_y']) / len(test_results['psnr_y'])
         ave_ssim_y = sum(test_results['ssim_y']) / len(test_results['ssim_y'])
 
-        ave_psnr_y_lr = sum(test_results['psnr_y_lr']) / len(test_results['psnr_y_lr'])
-        ave_ssim_y_lr = sum(test_results['ssim_y_lr']) / len(test_results['ssim_y_lr'])
+        #ave_psnr_y_lr = sum(test_results['psnr_y_lr']) / len(test_results['psnr_y_lr'])
+        #ave_ssim_y_lr = sum(test_results['ssim_y_lr']) / len(test_results['ssim_y_lr'])
+        #logger.info(
+        #   '----Y channel, average PSNR/SSIM----\n\tPSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}. LR PSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}.\n'.
+        #    format(ave_psnr_y, ave_ssim_y, ave_psnr_y_lr, ave_ssim_y_lr))
         logger.info(
-            '----Y channel, average PSNR/SSIM----\n\tPSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}. LR PSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}.\n'.
-            format(ave_psnr_y, ave_ssim_y, ave_psnr_y_lr, ave_ssim_y_lr))
+            '----Y channel, average PSNR/SSIM----\n\tPSNR_Y: {:.6f} dB; SSIM_Y: {:.6f}.\n'.
+            format(ave_psnr_y, ave_ssim_y))
